@@ -10,13 +10,17 @@ sp = authenticate_spotify(client_id, client_secret)
 
 # Define la estructura de la ventana
 layout = [
-    # ... [tu layout aquí] ...
+    [sg.Text('Spotify Data Analysis', font=('Helvetica', 16), justification='center', pad=(0,10))],
+    [sg.Text('Playlist ID:', size=(15, 1)), sg.InputText(key='PLAYLIST_ID')],
+    [sg.Text('Number of Clusters:', size=(15, 1)), sg.Slider(range=(2, 10), default_value=3, size=(20, 15), orientation='horizontal', font=('Helvetica', 12), key='NUM_CLUSTERS')],
+    [sg.Button('Load Data', size=(10, 1)), sg.Button('Cluster', size=(10, 1)), sg.Button('Exit', size=(10, 1))],
+    [sg.Multiline(size=(70, 20), key='OUTPUT', autoscroll=True, disabled=True)]
 ]
 
 # Crea la ventana
-window = sg.Window('Spotify Data Analysis', layout)
+window = sg.Window('Spotify Playlist Data Clustering', layout)
 
-# Variables para almacenar los datos de la playlist y las características
+# Variable para almacenar los datos de la playlist y las características
 tracks_info = None
 features = None
 
