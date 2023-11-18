@@ -10,11 +10,11 @@ sp = authenticate_spotify(client_id, client_secret)
 
 # Define la estructura de la ventana
 layout = [
-    [sg.Text('Spotify Data Analysis', font=('Helvetica', 16), justification='center', pad=(0,10))],
-    [sg.Text('Playlist ID:', size=(15, 1)), sg.InputText(key='PLAYLIST_ID')],
-    [sg.Text('Number of Clusters:', size=(15, 1)), sg.Slider(range=(2, 10), default_value=3, size=(20, 15), orientation='horizontal', font=('Helvetica', 12), key='NUM_CLUSTERS')],
-    [sg.Button('Load Data', size=(10, 1)), sg.Button('Cluster', size=(10, 1)), sg.Button('Exit', size=(10, 1))],
-    [sg.Multiline(size=(70, 20), key='OUTPUT', autoscroll=True, disabled=True)]
+    [sg.Text('Spotify Data Analysis', font=('Helvetica', 16), justification='center')],
+    [sg.Text('Playlist ID:'), sg.InputText(key='PLAYLIST_ID')],
+    [sg.Text('Number of Clusters:'), sg.Slider(range=(2, 10), orientation='h', size=(34, 20), default_value=3, key='NUM_CLUSTERS')],
+    [sg.Button('Load Data'), sg.Button('Cluster'), sg.Button('Exit')],
+    [sg.Table(values=[], headings=['Name', 'Artist', 'Cluster'], auto_size_columns=True, display_row_numbers=False, key='TABLE')]
 ]
 
 # Crea la ventana
@@ -38,6 +38,16 @@ while True:
             window['OUTPUT'].update(f"An error occurred: {e}\n")
     elif event == 'Cluster':
         num_clusters = int(values['NUM_CLUSTERS'])
+        try:
+            if not tracks_info or not features:
+                sg.popup('Please load data before clustering.')
+                continue
+            clustering_results = process_and_cluster_data(tracks_info, features, num_clusters)
+            # Convierte los resultados del clustering a una lista de listas para la Table
+            table_data = [list(row) for row in clustering_results.itertuples(index=False)]
+            window['TABLE'].update(values=table_data)
+        except Exception as e:
+            sg.popup(f"An error occurred: {e}")
         try:
             if not tracks_info or not features:
                 window['OUTPUT'].update('Please load data before clustering.\n')

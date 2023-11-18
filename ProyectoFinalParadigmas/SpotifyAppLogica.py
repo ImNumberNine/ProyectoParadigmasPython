@@ -57,11 +57,10 @@ def process_and_cluster_data(tracks_info, features, num_clusters):
 
     return df[['name', 'artist', 'cluster']]
 
-'''
+
 # Ejemplo de cómo se llamarían estas funciones:
 if __name__ == "__main__":
     sp = authenticate_spotify('ce28579afae84f4281e87ae12658f1c0', '2dacb21be0814ff2ab4654e0401be8de')
     tracks_info, features = get_top_tracks_features(sp, '1XfO3NSQZo1m6l574HO6dk')
     clustered_data = process_and_cluster_data(tracks_info, features, 3)
     print(clustered_data)
-'''
