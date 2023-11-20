@@ -5,7 +5,8 @@ from PIL import Image
 import PySimpleGUI as sg
 import pandas as pd
 from SpotifyAppLogica import (
-    authenticate_spotify, get_top_tracks_features, process_and_cluster_data, get_recommendations
+    authenticate_spotify, get_top_tracks_features, process_and_cluster_data, get_recommendations,
+    export_cluster_results_to_csv, export_cluster_results_to_excel
 )
 
 # Configura tus credenciales de Spotify
@@ -35,12 +36,18 @@ recommendations_section = [
     [sg.Button('Get Recommendations', size=(15, 1)), sg.Listbox(values=[], size=(60, 6), key='RECOMMENDATIONS')]
 ]
 
+# Estructura de la sección de exportación
+export_section = [
+    [sg.Button('Export to CSV', size=(15, 1)), sg.Button('Export to Excel', size=(15, 1))]
+]
+
 # Layout principal que combina todas las secciones
 layout = [
     [sg.Text('Spotify Data Analysis', font=('Helvetica', 16), justification='center', pad=(0,10))],
     [sg.Frame('Load Data', load_section, font='Any 12', title_color='yellow')],
     [sg.Frame('Cluster and Results', cluster_section, font='Any 12', title_color='yellow')],
-    [sg.Frame('Recommendations', recommendations_section, font='Any 12', title_color='yellow')]
+    [sg.Frame('Recommendations', recommendations_section, font='Any 12', title_color='yellow')],
+    [sg.Frame('Export', export_section, font='Any 12', title_color='yellow')]
 ]
 
 # Crea la ventana
@@ -49,14 +56,8 @@ window = sg.Window('Spotify Data Analysis', layout, resizable=True)
 # Inicializa las variables para almacenar los datos de la playlist y las características
 tracks_info, features, clustered_data = None, None, pd.DataFrame()
 
-
-
-
-
 # Event loop para procesar "eventos" y obtener los "valores" de las entradas
 while True:
-
-    
     event, values = window.read()
     if event in (None, 'Exit'):
         break
@@ -68,6 +69,8 @@ while True:
         # Actualiza la tabla con los datos cargados, incluyendo el ID de la canción
         table_data = [[track['id'], track['name'], track['artist']] for track in tracks_info]
         window['TABLE'].update(values=table_data)
+        clustered_data = pd.DataFrame()  # Actualiza clustered_data
+
     elif event == 'Cluster':
         num_clusters = values['NUM_CLUSTERS']
         if tracks_info and features:
@@ -82,5 +85,16 @@ while True:
             # Convierte las recomendaciones en una lista para mostrar en la GUI
             recommendations_to_show = [' - '.join([row['id'], row['name'], row['artist']]) for index, row in recommended_songs.iterrows()]
             window['RECOMMENDATIONS'].update(recommendations_to_show)
+    elif event == 'Export to CSV':
+        if not clustered_data.empty:
+            file_path = sg.popup_get_file('Choose a CSV file to save the results', save_as=True, default_extension=".csv")
+            if file_path:
+                export_cluster_results_to_csv(clustered_data, file_path)
+    elif event == 'Export to Excel':
+        if not clustered_data.empty:
+            file_path = sg.popup_get_file('Choose an Excel file to save the results', save_as=True, default_extension=".xlsx")
+            if file_path:
+                export_cluster_results_to_excel(clustered_data, file_path)
 
 window.close()
+

@@ -83,3 +83,29 @@ def get_recommendations(clustered_data, song_id, num_recommendations=5):
     return recommendations[['name', 'artist', 'id', 'cluster']]
 
 
+import pandas as pd
+
+def export_cluster_results_to_csv(clustered_data, file_path):
+    """
+    Exporta los resultados del clustering a un archivo CSV.
+
+    :param clustered_data: DataFrame con los resultados del clustering.
+    :param file_path: Ruta del archivo CSV de destino.
+    """
+    try:
+        clustered_data.to_csv(file_path, index=False)
+    except Exception as e:
+        print(f"Error exporting to CSV: {e}")
+
+def export_cluster_results_to_excel(clustered_data, file_path):
+    """
+    Exporta los resultados del clustering a un archivo Excel.
+
+    :param clustered_data: DataFrame con los resultados del clustering.
+    :param file_path: Ruta del archivo Excel de destino.
+    """
+    try:
+        clustered_data.to_excel(file_path, index=False)
+    except Exception as e:
+        print(f"Error exporting to Excel: {e}")
+
