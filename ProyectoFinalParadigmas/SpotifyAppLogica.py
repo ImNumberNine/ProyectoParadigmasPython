@@ -17,12 +17,11 @@ def get_top_tracks_features(sp, playlist_id):
     tracks_info = []
     track_ids = []
 
-    # Itera sobre las pistas y recoge los datos necesarios
     for track_entry in top_tracks['items']:
         track = track_entry['track']
         track_ids.append(track['id'])
         tracks_info.append({
-            'id': track['id'],
+            'id': track['id'],  # Este es el ID de la canción que Spotify asigna
             'name': track['name'],
             'artist': ', '.join([artist['name'] for artist in track['artists']])
         })
@@ -49,18 +48,38 @@ def process_and_cluster_data(tracks_info, features, num_clusters):
     scaled_features = scaler.fit_transform(df_selected_features)
 
     # Implementar KMeans Clustering
-    kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+    kmeans = KMeans(n_clusters=3, n_init=10, random_state=42)
     kmeans.fit(scaled_features)
 
     # Añadir la columna de clusters al DataFrame original
     df['cluster'] = kmeans.labels_
 
-    return df[['name', 'artist', 'cluster']]
+    return df[['id', 'name', 'artist', 'cluster']]
 
 
-# Ejemplo de cómo se llamarían estas funciones:
-if __name__ == "__main__":
-    sp = authenticate_spotify('ce28579afae84f4281e87ae12658f1c0', '2dacb21be0814ff2ab4654e0401be8de')
-    tracks_info, features = get_top_tracks_features(sp, '1XfO3NSQZo1m6l574HO6dk')
-    clustered_data = process_and_cluster_data(tracks_info, features, 3)
-    print(clustered_data)
+
+def get_recommendations(clustered_data, song_id, num_recommendations=5):
+    """
+    Genera recomendaciones de canciones basadas en el cluster de una canción específica.
+
+    :param clustered_data: DataFrame con las canciones y sus clusters.
+    :param song_id: El ID de la canción que el usuario ha seleccionado.
+    :param num_recommendations: Número de recomendaciones a generar.
+    :return: DataFrame con las canciones recomendadas.
+    """
+    # Encuentra el cluster de la canción seleccionada
+    song_cluster = clustered_data[clustered_data['id'] == song_id]['cluster'].values[0]
+
+    # Filtra canciones del mismo cluster
+    same_cluster_songs = clustered_data[clustered_data['cluster'] == song_cluster]
+
+    # Elimina la canción seleccionada de las recomendaciones
+    recommendations = same_cluster_songs[same_cluster_songs['id'] != song_id]
+
+    # Si hay demasiadas recomendaciones, devuelve una muestra aleatoria
+    if len(recommendations) > num_recommendations:
+        recommendations = recommendations.sample(n=num_recommendations)
+
+    return recommendations[['name', 'artist', 'id', 'cluster']]
+
+
