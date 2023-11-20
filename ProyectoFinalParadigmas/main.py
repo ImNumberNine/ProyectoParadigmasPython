@@ -1,3 +1,7 @@
+import matplotlib.pyplot as plt
+import io
+import base64
+from PIL import Image
 import PySimpleGUI as sg
 import pandas as pd
 from SpotifyAppLogica import (
@@ -9,28 +13,54 @@ client_id = 'ce28579afae84f4281e87ae12658f1c0'
 client_secret = '2dacb21be0814ff2ab4654e0401be8de'
 sp = authenticate_spotify(client_id, client_secret)
 
-# Define la estructura de la ventana
+# Establece un tema para la GUI
+sg.theme('DarkTeal9')
+
+# Estructura de la sección de carga de datos
+load_section = [
+    [sg.Text('Playlist ID:', size=(15, 1)), sg.InputText(key='PLAYLIST_ID')],
+    [sg.Button('Load Data', size=(10, 1))]
+]
+
+# Estructura de la sección de clustering y visualización de resultados
+cluster_section = [
+    [sg.Text('Number of Clusters:', size=(15, 1)), sg.Slider(range=(2, 10), orientation='h', size=(34, 20), default_value=3, key='NUM_CLUSTERS')],
+    [sg.Button('Cluster', size=(10, 1))],
+    [sg.Table(values=[], headings=['ID', 'Name', 'Artist', 'Cluster'], auto_size_columns=True, display_row_numbers=False, key='TABLE', size=(None, 10))]
+]
+
+# Estructura de la sección de recomendaciones
+recommendations_section = [
+    [sg.Text('Song ID for Recommendations:', size=(25, 1)), sg.InputText(key='SONG_ID')],
+    [sg.Button('Get Recommendations', size=(15, 1)), sg.Listbox(values=[], size=(60, 6), key='RECOMMENDATIONS')]
+]
+
+# Layout principal que combina todas las secciones
 layout = [
-    [sg.Text('Spotify Data Analysis', font=('Helvetica', 16), justification='center')],
-    [sg.Text('Playlist ID:'), sg.InputText(key='PLAYLIST_ID')],
-    [sg.Text('Number of Clusters:'), sg.Slider(range=(2, 10), orientation='h', size=(34, 20), default_value=3, key='NUM_CLUSTERS')],
-    [sg.Button('Load Data'), sg.Button('Cluster'), sg.Button('Exit')],
-    [sg.Table(values=[], headings=['ID', 'Name', 'Artist', 'Cluster'], auto_size_columns=True, display_row_numbers=False, key='TABLE')],
-    [sg.Text('Song ID for Recommendations:'), sg.InputText(key='SONG_ID')],
-    [sg.Button('Get Recommendations'), sg.Listbox(values=[], size=(60, 4), key='RECOMMENDATIONS')]
+    [sg.Text('Spotify Data Analysis', font=('Helvetica', 16), justification='center', pad=(0,10))],
+    [sg.Frame('Load Data', load_section, font='Any 12', title_color='yellow')],
+    [sg.Frame('Cluster and Results', cluster_section, font='Any 12', title_color='yellow')],
+    [sg.Frame('Recommendations', recommendations_section, font='Any 12', title_color='yellow')]
 ]
 
 # Crea la ventana
-window = sg.Window('Spotify Data Analysis', layout)
+window = sg.Window('Spotify Data Analysis', layout, resizable=True)
 
 # Inicializa las variables para almacenar los datos de la playlist y las características
 tracks_info, features, clustered_data = None, None, pd.DataFrame()
 
+
+
+
+
 # Event loop para procesar "eventos" y obtener los "valores" de las entradas
 while True:
+
+    
     event, values = window.read()
     if event in (None, 'Exit'):
         break
+
     elif event == 'Load Data':
         playlist_id = values['PLAYLIST_ID']
         sp = authenticate_spotify(client_id, client_secret)
