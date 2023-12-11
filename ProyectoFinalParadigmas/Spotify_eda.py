@@ -6,8 +6,8 @@ import numpy as np
 from sklearn.decomposition import PCA
 
 # Configura tus credenciales de Spotify
-client_id = 'tu_client_id'
-client_secret = 'tu_client_secret'
+client_id = 'ce28579afae84f4281e87ae12658f1c0'
+client_secret = '2dacb21be0814ff2ab4654e0401be8de'
 sp = authenticate_spotify(client_id, client_secret)
 
 # Función para obtener datos de playlists específicas

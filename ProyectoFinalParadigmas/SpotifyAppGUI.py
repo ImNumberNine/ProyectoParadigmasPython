@@ -23,6 +23,7 @@ class SpotifyAppGUI:
 
 
     def create_layout(self):
+
         # Definición de las secciones de la interfaz
         load_section = [
             [sg.Text('Playlist ID:', size=(15, 1)), sg.InputText(key='PLAYLIST_ID')],
@@ -39,7 +40,7 @@ class SpotifyAppGUI:
 
         recommendations_section = [
             [sg.Text('Song ID for Recommendations:', size=(25, 1)), sg.InputText(key='SONG_ID')],
-            [sg.Button('Get Recommendations', size=(15, 1)), sg.Listbox(values=[], size=(60, 6), key='RECOMMENDATIONS')]
+            [sg.Button('Get Recommendations', size=(16, 1)), sg.Listbox(values=[], size=(60, 6), key='RECOMMENDATIONS')]
         ]
 
         export_section = [
@@ -73,7 +74,12 @@ class SpotifyAppGUI:
         pass
 
     def load_data(self, playlist_id):
-        self.df = get_top_tracks_features(self.sp, playlist_id)
+        try:
+            self.df = get_top_tracks_features(self.sp, playlist_id)
+            table_data = [[track['id'], track['name'], track['artist']] for track in self.df.to_dict('records')]
+            self.window['TABLE'].update(values=table_data)
+        except Exception as e:
+            sg.popup_error(f"Failed to load playlist data: {e}")
 
     def perform_clustering(self):
         num_clusters = int(self.values['NUM_CLUSTERS'])
@@ -82,8 +88,18 @@ class SpotifyAppGUI:
                 self.clustered_data.iterrows()]
 
     def get_recommendations(self, song_id):
-        recommended_songs = get_recommendations(self.clustered_data, song_id)
-        return [' - '.join([row['id'], row['name'], row['artist']]) for index, row in recommended_songs.iterrows()]
+        try:
+            if song_id not in self.clustered_data['id'].values:
+                raise ValueError("Song ID not found in the playlist.")
+
+            recommended_songs = get_recommendations(self.clustered_data, song_id)
+            return [' - '.join([row['id'], row['name'], row['artist']]) for index, row in recommended_songs.iterrows()]
+        except ValueError as e:
+            sg.popup_error(f"Error: {e}")
+            return []
+        except Exception as e:
+            sg.popup_error(f"An unexpected error occurred: {e}")
+            return []
 
     def export_to_csv(self, file_path):
         export_cluster_results_to_csv(self.clustered_data, file_path)

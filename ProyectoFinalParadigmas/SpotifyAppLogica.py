@@ -9,25 +9,31 @@ def authenticate_spotify(client_id, client_secret):
     return spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 def get_top_tracks_features(sp, playlist_id):
-    top_tracks = sp.playlist_tracks(playlist_id)
-    tracks_info = []
-    track_ids = []
+    try:
+        top_tracks = sp.playlist_tracks(playlist_id)
+        tracks_info = []
+        track_ids = []
 
-    for track_entry in top_tracks['items']:
-        track = track_entry['track']
-        track_ids.append(track['id'])
-        tracks_info.append({
-            'id': track['id'],
-            'name': track['name'],
-            'artist': ', '.join([artist['name'] for artist in track['artists']])
-        })
+        for track_entry in top_tracks['items']:
+            track = track_entry['track']
+            track_ids.append(track['id'])
+            tracks_info.append({
+                'id': track['id'],
+                'name': track['name'],
+                'artist': ', '.join([artist['name'] for artist in track['artists']])
+            })
 
-    features = sp.audio_features(track_ids)
-    for i, feature in enumerate(features):
-        if feature:  # Verifica si existe la característica
-            tracks_info[i].update(feature)
+        features = sp.audio_features(track_ids)
+        for i, feature in enumerate(features):
+            if feature:  # Verifica si existe la característica
+                tracks_info[i].update(feature)
 
-    return pd.DataFrame(tracks_info)  # Devuelve un DataFrame
+        return pd.DataFrame(tracks_info)  # Devuelve un DataFrame
+    except spotipy.SpotifyException as e:
+        # Aquí puedes decidir si quieres imprimir el error o lanzar una excepción personalizada
+        print(f"Error retrieving track features: {e}")
+        # O lanzar una excepción para ser capturada por la llamada superior
+        raise
 
 def process_and_cluster_data(df, num_clusters):
     features_to_use = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'speechiness', 'valence']
